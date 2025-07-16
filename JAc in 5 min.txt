@@ -1,0 +1,310 @@
+Jac in a Flash#
+This mini tutorial uses a single toy program to highlight the major pieces of the Jac language. We start with a small Python game and gradually evolve it into a fully object‑spatial Jac implementation. Each iteration introduces a new Jac feature while keeping the overall behaviour identical.
+
+Step 0 – The Python version#
+Our starting point is a regular Python program that implements a simple "guess the number" game. The player has several attempts to guess a randomly generated number.
+
+
+guess_game.py
+
+"""A Number Guessing Game"""
+
+import random
+
+
+class Game:
+    def __init__(self, attempts):
+        self.attempts = attempts
+
+    def play(self):
+        raise NotImplementedError("Subclasses must implement this method.")
+
+
+class GuessTheNumberGame(Game):
+    def __init__(self, attempts=10):
+        super().__init__(attempts)
+        self.correct_number = random.randint(1, 10)
+
+    def play(self):
+        while self.attempts > 0:
+            guess = input("Guess a number between 1 and 10: ")
+            if guess.isdigit():
+                if self.process_guess(int(guess)):
+                    print("Congratulations! You guessed correctly.")
+                    return  # Exit the game after a correct guess
+            else:
+                print("That's not a valid number! Try again.")
+
+            self.attempts -= 1
+            if self.attempts > 0:
+                print(f"You have {self.attempts} attempts left.")
+
+        print("Sorry, you didn't guess the number. Better luck next time!")
+
+    def process_guess(self, guess):
+        if guess > self.correct_number:
+            print("Too high!")
+        elif guess < self.correct_number:
+            print("Too low!")
+        else:
+            return True
+        return False
+
+
+game = GuessTheNumberGame()
+game.play()
+
+Step 1 – A direct Jac translation#
+guess_game1.jac mirrors the Python code almost line for line. Classes are declared with obj and methods with def. Statements end with a semicolon and the parent initializer is invoked via super.init. Program execution happens inside a with entry { ... } block, which replaces Python's if __name__ == "__main__": section. This step shows how familiar Python concepts map directly to Jac syntax.
+
+
+guess_game1.jac
+
+"""A Number Guessing Game"""
+
+import random;
+
+
+class Game {
+    def init(attempts: int) {
+        self.attempts = attempts;
+        self.won = False;
+    }
+
+    def play() {
+        raise NotImplementedError("Subclasses must implement this method.") ;
+    }
+}
+
+
+class GuessTheNumberGame(Game) {
+    def init(attempts: int = 10) {
+        super.init(attempts);
+        self.correct_number = random.randint(1, 10);
+    }
+
+    def play() {
+        while self.attempts > 0 {
+            guess = input("Guess a number between 1 and 10: ");
+            if guess.isdigit() {
+                self.process_guess(int(guess));
+                if self.won {
+                    break;
+                }
+            } else {
+                print("That's not a valid number! Try again.");
+            }
+        }
+        if not self.won {
+            print("Sorry, you didn't guess the number. Better luck next time!");
+        }
+    }
+
+    def process_guess(guess: int) {
+        if guess > self.correct_number {
+            print("Too high!");
+        } elif guess < self.correct_number {
+            print("Too low!");
+        } else {
+            print("Congratulations! You guessed correctly.");
+            self.won = True;
+            return;
+        }
+        self.attempts -= 1;
+        print(f"You have {self.attempts} attempts left.");
+    }
+}
+
+
+with entry {
+    game = GuessTheNumberGame();
+    game.play();
+}
+
+Step 2 – Declaring fields with has#
+The second version moves attribute definitions into the class body using the has keyword. Fields may specify types and default values directly on the declaration. Methods that take no parameters omit parentheses in their signature, making the object definition concise.
+
+
+guess_game2.jac
+
+"""A Number Guessing Game"""
+
+import random;
+
+
+obj Game {
+    has attempts: int, won: bool = False;
+
+    def play {
+        raise NotImplementedError("Subclasses must implement this method.");
+    }
+}
+
+
+obj GuessTheNumberGame (Game) {
+    has attempts: int = 10, correct_number: int = random.randint(1, 10);
+
+    def play {
+        while self.attempts > 0 {
+            guess = input("Guess a number between 1 and 10: ");
+            if guess.isdigit() {
+                self.process_guess(int(guess));
+                if self.won {
+                    break;
+                }
+            } else {
+                print("That's not a valid number! Try again.");
+            }
+        }
+        if not self.won {
+            print("Sorry, you didn't guess the number. Better luck next time!");
+        }
+    }
+
+    def process_guess(guess: int) {
+        if guess > self.correct_number {
+            print("Too high!");
+        } elif guess < self.correct_number {
+            print("Too low!");
+        } else {
+            print("Congratulations! You guessed correctly.");
+            self.won = True;
+            return;
+        }
+        self.attempts -= 1;
+        print(f"You have {self.attempts} attempts left.");
+    }
+}
+
+
+# Run the game
+with entry {
+    game = GuessTheNumberGame();
+    game.play();
+}
+
+Step 3 – Separating implementation with impl#
+The fourth version splits object declarations from their implementations using impl. The object lists method signatures (def init;, override def play;), and the actual bodies are provided later in impl Class.method blocks. This separation keeps the interface clean and helps organise larger codebases.
+
+
+guess_game3.jac
+guess_game3.impl.jac
+
+"""A Number Guessing Game"""
+import random;
+
+
+obj Game {
+    has attempts: int, won: bool = False;
+
+    def play;
+}
+
+
+obj GuessTheNumberGame (Game) {
+    has correct_number: int = random.randint(1, 10);
+
+    def init;
+    override def play;
+    def process_guess(guess: int);
+}
+
+# Run the game
+ with entry {
+    game = GuessTheNumberGame();
+    game.play();
+}
+
+Step 4 – Walking the graph#
+Finally guess_game4.jac re‑imagines the game using Jac's object‑spatial architecture. A walker visits a chain of turn nodes created with ++> edges. The walker moves with visit [-->] and stops via disengage when the guess is correct. The game is launched by spawning the walker at root. This example shows how conventional logic can become graph traversal.
+
+
+guess_game4.jac
+guess_game4.impl.jac
+
+"""A Number Guessing Game"""
+
+import random;
+
+walker GuessGame {
+    has correct_number: int = random.randint(1, 10);
+
+    can start_game with `root entry;
+    def process_guess(guess: int);
+}
+
+node turn {
+    can check with GuessGame entry;
+}
+
+# Run the game
+ with entry {
+    GuessGame() spawn root;
+}
+
+Step 5 – Scale Agnostic Approach#
+The fifth version demonstrates Jac's scale-agnostic design. The same code that runs locally can seamlessly scale to cloud deployment without modification. By running the command jac serve filename.jac, the walkers become API endpoints that can be called via HTTP requests. This shows how Jac applications are inherently cloud-ready.
+
+
+guess_game5.jac
+guess_game5.impl.jac
+
+"""A Number Guessing Game"""
+
+import random;
+
+walker GuessGame {
+    has guess: int;
+
+    can start with `root entry;
+    can process_guess with turn entry;
+}
+
+node turn {
+    has correct_number: int = random.randint(1, 10);
+}
+
+# Will run when in CLI mode (not in cloud)
+ with entry:__main__ {
+    root spawn GuessGame(3);
+    root spawn GuessGame(4);
+    root spawn GuessGame(5);
+    root spawn GuessGame(6);
+}
+
+Step 6 – AI-Enhanced Gameplay with MTLLM#
+The final version integrates AI capabilities using MTLLM (Meaning Typed LLM). Instead of simple "too high" or "too low" responses, the game now provides intelligent, context-aware hints generated by an LLM. This demonstrates how easily AI can be woven into Jac applications to create more engaging user experiences.
+
+
+guess_game6.jac
+guess_game6.impl.jac
+
+"""A Number Guessing Game"""
+
+import random;
+import from mtllm.llm { Model }
+
+# glob llm = Model(model_name="gpt-4o",verbose=False);
+ glob llm = Model(model_name="gemini/gemini-2.0-flash", verbose=False);
+
+"""Provide a fun hint if guess is incorrect"""
+def give_hint(guess: int, correct_number: int) -> str by llm();
+
+walker GuessGame {
+    has guess: int;
+
+    can start with `root entry;
+    can process_guess with turn entry;
+}
+
+node turn {
+    has correct_number: int = random.randint(1, 10);
+}
+
+# Will run when in CLI mode (not in cloud)
+ with entry:__main__ {
+    root spawn GuessGame(3);
+    root spawn GuessGame(4);
+    root spawn GuessGame(5);
+    root spawn GuessGame(6);
+}
