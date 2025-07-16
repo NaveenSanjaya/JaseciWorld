@@ -1,53 +1,63 @@
-# JaseciWorld Calculator
+# JaseciWorld Smart Calculator
 
-A comprehensive calculator application built with Jac programming language, showcasing basic arithmetic, advanced Jac features, and AI-enhanced functionality following the "Jac in 5 Minutes" tutorial progression.
+An AI-powered calculator built with Jac programming language, featuring real Gemini LLM integration for intelligent calculation explanations.
 
-## 📁 Project Structure
+## 📁 Main File
 
-```
-JaseciWorld/
-├── calculator.jac           # Interactive calculator with user input
-├── simple_calc.jac          # Basic calculator with predefined operations
-├── test.jac                # Original calculator (node-based structure)
-├── calculator_step5.jac     # Step 5: Scale-agnostic architecture
-├── calculator_step6.jac     # Step 6: AI-enhanced with MTLLM
-├── calculator_working.jac   # Final: Steps 5&6 combined (working version)
-├── JAc in 5 min.txt        # Tutorial reference
-└── README.md               # This file
-```
+- **`smart_calculator.jac`** - Complete AI-enhanced calculator with Gemini Flash integration
 
 ## 🚀 Features
 
-### Basic Calculators
-
-#### Interactive Calculator (`calculator.jac`)
-- **Real-time calculations**: Enter expressions and get instant results
-- **Basic arithmetic operations**: Addition (+), Subtraction (-), Multiplication (*), Division (/)
+- **Basic arithmetic**: +, -, *, / operations
+- **Smart mode**: Toggle AI explanations on/off  
+- **Real Gemini AI**: Uses Gemini-2.0-Flash for calculation insights
+- **Fallback mode**: Works without AI when not configured
 - **Error handling**: Division by zero protection and input validation
-- **User-friendly interface**: Clear menu and instruction prompts
-- **Continuous operation**: Keep calculating until you choose to quit
 
-#### Simple Calculator (`simple_calc.jac`)
-- **Demonstration mode**: Shows predefined calculations
-- **Quick testing**: Verify basic arithmetic operations
-- **Clean output**: Formatted results display
+## ⚙️ Setup
 
-### Advanced Features (Steps 5 & 6)
+### Basic Usage
+```bash
+jac run smart_calculator.jac
+```
 
-#### Step 5: Scale-Agnostic Calculator (`calculator_step5.jac`)
-- **Local execution**: Run as CLI application
-- **Cloud-ready**: Deploy as API service with `jac serve`
-- **Walker-based architecture**: Uses Jac's graph traversal paradigm
-- **Node-based calculations**: Separate nodes for each operation type
-- **API endpoints**: Automatic REST API generation from walkers
+### AI Features (Optional)
+1. Install MTLLM: `pip install mtllm`
+2. Get API key: [Google AI Studio](https://makersuite.google.com/app/apikey)
+3. Set environment variable:
+   ```bash
+   # Windows PowerShell
+   $env:GOOGLE_API_KEY="your-api-key"
+   
+   # Windows CMD  
+   set GOOGLE_API_KEY=your-api-key
+   
+   # Linux/Mac
+   export GOOGLE_API_KEY="your-api-key"
+   ```
 
-#### Step 6: AI-Enhanced Calculator (`calculator_working.jac`)
-- **Smart mode**: Toggle between basic and AI-enhanced calculations
-- **Intelligent explanations**: Get educational insights about operations
-- **Math facts**: Random mathematical trivia and historical facts
-- **Real-world applications**: Suggestions for practical uses
-- **Interactive demo**: Built-in feature demonstration
-- **Educational content**: Learn while you calculate
+## 🎮 Usage
+
+```
+Commands: 'smart', 'setup', 'test', 'q'
+Enter calculation > 5 + 3
+✅ 5.0 + 3.0 = 8.0
+
+> smart
+✅ Smart mode ON
+
+> 12 * 4  
+✅ 12.0 * 4.0 = 48.0
+🤖 Gemini: [AI-generated explanation about multiplication and its applications]
+```
+
+## 🎯 Commands
+
+- **Calculations**: `5 + 3`, `10 - 4`, `6 * 7`, `15 / 3`
+- **`smart`**: Toggle AI explanations
+- **`setup`**: Show AI setup instructions
+- **`test`**: Test Gemini connection
+- **`q`**: Quit calculator
 
 ## 🛠️ Prerequisites
 
